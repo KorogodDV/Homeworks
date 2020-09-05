@@ -14,7 +14,7 @@ int main()
 {
     txCreateWindow(1280, 720);
 
-    int R = 50;
+    int R = 65;
     int N = 100;
     int x = 400;
     int y = 300;
