@@ -7,6 +7,7 @@ void drawSphere(int x, int y, int R, int N, int red, int green, int blue)
         txSetColor(RGB(red * i / N, green * i / N, blue * i / N));
         txSetFillColor(RGB(red * i / N, green * i / N, blue * i / N));
         txCircle(x + 0.5*(R - R * i / N), y - 0.5*(R - R * i / N), R - R * i / N);
+        txSetDefaults();
     }
 }
 
@@ -28,7 +29,7 @@ int main()
     while (true)
     {
         txBegin();
-        txSetFillColor(TX_PINK);
+        txSetFillColor(TX_BLACK);
         txClear();
         drawSphere(x, y, R, N, red, green, blue);
         txEnd();
