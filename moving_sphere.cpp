@@ -33,8 +33,14 @@ int main()
         drawSphere(x, y, R, N, red, green, blue);
         txEnd();
 
-        if (x + vx * dt + R > 1280 || x + vx * dt - R < 0) vx = -vx;
-        if (y + vy * dt + R > 720 || y + vy * dt - R < 0) vy = -vy;
+        if (x + vx * dt + R > 1280 || x + vx * dt - R < 0)
+        {
+            vx = -vx;
+        }
+        if (y + vy * dt + R > 720 || y + vy * dt - R < 0)
+        {
+            vy = -vy;
+        }
         x += vx * dt;
         y += vy * dt;
     }
