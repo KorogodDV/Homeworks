@@ -122,6 +122,9 @@ int main()
         GetCursorPos(&p);
 
         //std::cout << p.x - 128 << " " << p.y - 85 << " ";
+        
+        vx2 += 0.005;
+        vx3 += 0.005;
 
         changeSpeed(x1, y1, &vx1, &vy1, p);
         changeSpeed(x2, y2, &vx2, &vy2, p);
