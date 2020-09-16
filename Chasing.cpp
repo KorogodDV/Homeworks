@@ -43,8 +43,6 @@ void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
         *vy *= -1;
     }
 }
-//
-//}
 
 bool checkCollisionTwoSpheres(int x1, int y1, int R1, int x2, int y2, int R2)
 {
