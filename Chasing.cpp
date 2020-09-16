@@ -2,16 +2,18 @@
 #include <iostream>
 #include "math.h"
 
-void drawSphere(float x, float y, int R, int N, int red, int green, int blue, COLORREF color, COLORREF fillColor)
+void drawSphere(float x, float y, int R, int N, int red, int green, int blue)
 {
+    COLORREF color = txGetColor();
+    COLORREF fillColor = txGetFillColor();
     for (int i = 0; i < N; i++)
     {
         txSetColor(RGB(red * i / N, green * i / N, blue * i / N));
         txSetFillColor(RGB(red * i / N, green * i / N, blue * i / N));
         txCircle(int(x + 0.5*(R - R * i / N)), int(y - 0.5*(R - R * i / N)), R - R * i / N);
-        txSetColor(color);
-        txSetFillColor(fillColor);
     }
+    txSetColor(color);
+    txSetFillColor(fillColor);
 }
 
 void speedBoostForCatchingSpheres(float* v)
@@ -44,7 +46,8 @@ void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
     }
 }
 
-bool checkCollisionTwoSpheres(int x1, int y1, int R1, int x2, int y2, int R2)
+
+bool checkCollisionTwoSpheres(float x1, float y1, int R1, float x2, float y2, int R2)
 {
     if ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) > (R1 + R2) * (R1 + R2))
     {
@@ -116,11 +119,9 @@ int main()
         txBegin();
         txSetFillColor(TX_BLACK);
         txClear();
-        COLORREF color = txGetColor();
-        COLORREF fillColor = txGetFillColor();
-        drawSphere(x1, y1, R1, N, red1, green1, blue1, color, fillColor);
-        drawSphere(x2, y2, R2, N, red2, green2, blue2, color, fillColor);
-        drawSphere(x3, y3, R3, N, red3, green3, blue3, color, fillColor);
+        drawSphere(x1, y1, R1, N, red1, green1, blue1);
+        drawSphere(x2, y2, R2, N, red2, green2, blue2);
+        drawSphere(x3, y3, R3, N, red3, green3, blue3);
         txEnd();
 
         GetCursorPos(&mousePos);
