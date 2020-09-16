@@ -74,6 +74,7 @@ void CollideSpheres(int m1, float* vx1, float* vy1, int m2, float* vx2, float* v
 int main()
 {
     txCreateWindow(1280, 720);
+    txSetFillColor(TX_BLACK);
 
     std::cout << "Вы будете играть красным шариком и ваша цель не дать двум шарикам вас догнать.";
 
@@ -117,7 +118,6 @@ int main()
     while (true)
     {
         txBegin();
-        txSetFillColor(TX_BLACK);
         txClear();
         drawSphere(x1, y1, R1, N, red1, green1, blue1);
         drawSphere(x2, y2, R2, N, red2, green2, blue2);
