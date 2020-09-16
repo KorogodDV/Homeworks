@@ -1,16 +1,22 @@
 #include "TXLib.h"
-#include "windows.h"
 #include <iostream>
 #include "math.h"
 
-void drawSphere(float x, float y, int R, int N, int red, int green, int blue)
+void drawSphere(float x, float y, int R, int N, int red, int green, int blue, COLORREF color, COLORREF fillColor)
 {
     for (int i = 0; i < N; i++)
     {
         txSetColor(RGB(red * i / N, green * i / N, blue * i / N));
         txSetFillColor(RGB(red * i / N, green * i / N, blue * i / N));
         txCircle(int(x + 0.5*(R - R * i / N)), int(y - 0.5*(R - R * i / N)), R - R * i / N);
+        txSetColor(color);
+        txSetFillColor(fillColor);
     }
+}
+
+void speedBoostForCatchingSpheres(float* v)
+{
+    *v += 0,005;
 }
 
 void moveSphere(float* x, float* y, float vx, float vy, float dt)
@@ -19,13 +25,11 @@ void moveSphere(float* x, float* y, float vx, float vy, float dt)
     *y += vy * dt;
 }
 
-void changeSpeed(float x, float y, float* vx, float* vy, POINT p)
+void DirectSpheresBehindCursor(float x, float y, float* vx, float* vy, POINT p)
 {
     float v = sqrt(*vx * *vx + *vy * *vy);
-//    float alpha = atan((p.y - 85 - y)/(p.x - 128 - x));
-//    std::cout << v << "   " << alpha << "   ";
-    *vx = v * (p.x - 128 - x) / sqrt(pow(p.x - 128 - x, 2) + pow(p.y - 85 - y, 2));
-    *vy = v * (p.y - 85 - y) / sqrt(pow(p.x - 128 - x, 2) + pow(p.y - 85 - y, 2));
+    *vx = v * (p.x - 128 - x) / sqrt((p.x - 128 - x) * (p.x - 128 - x) + (p.y - 85 - y) * (p.y - 85 - y));
+    *vy = v * (p.y - 85 - y) / sqrt((p.x - 128 - x) * (p.x - 128 - x) + (p.y - 85 - y) * (p.y - 85 - y));
 }
 
 void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
@@ -39,9 +43,6 @@ void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
         *vy *= -1;
     }
 }
-
-//void YouDied():
-//{
 //
 //}
 
@@ -49,11 +50,11 @@ bool checkCollisionTwoSpheres(int x1, int y1, int R1, int x2, int y2, int R2)
 {
     if ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) > (R1 + R2) * (R1 + R2))
     {
-        return(false);
+        return false;
     }
     else
     {
-        return(true);
+        return true;
     }
 }
 
@@ -73,7 +74,9 @@ int main()
 {
     txCreateWindow(1280, 720);
 
-    std::cout << "Âû áóäåòå èãðàòü êðàñíûì øàðèêîì è âàøà öåëü íå äàòü äâóì øàðèêàì âàñ äîãíàòü.";
+    std::cout << "Вы будете играть красным шариком и ваша цель не дать двум шарикам вас догнать.";
+
+    Sleep(3000);
 
     int N = 100;
     const float dt = 1.0;
@@ -107,28 +110,28 @@ int main()
     int red3 = 0;
     int green3 = 0;
     int blue3 = 255;
-    POINT p;
+
+    POINT mousePos;
 
     while (true)
     {
         txBegin();
         txSetFillColor(TX_BLACK);
         txClear();
-        drawSphere(x1, y1, R1, N, red1, green1, blue1);
-        drawSphere(x2, y2, R2, N, red2, green2, blue2);
-        drawSphere(x3, y3, R3, N, red3, green3, blue3);
+        COLORREF color = txGetColor();
+        COLORREF fillColor = txGetFillColor();
+        drawSphere(x1, y1, R1, N, red1, green1, blue1, color, fillColor);
+        drawSphere(x2, y2, R2, N, red2, green2, blue2, color, fillColor);
+        drawSphere(x3, y3, R3, N, red3, green3, blue3, color, fillColor);
         txEnd();
 
-        GetCursorPos(&p);
+        GetCursorPos(&mousePos);
+        speedBoostForCatchingSpheres(&vx2);
+        speedBoostForCatchingSpheres(&vx3);
 
-        //std::cout << p.x - 128 << " " << p.y - 85 << " ";
-        
-        vx2 += 0.005;
-        vx3 += 0.005;
-
-        changeSpeed(x1, y1, &vx1, &vy1, p);
-        changeSpeed(x2, y2, &vx2, &vy2, p);
-        changeSpeed(x3, y3, &vx3, &vy3, p);
+        DirectSpheresBehindCursor(x1, y1, &vx1, &vy1, mousePos);
+        DirectSpheresBehindCursor(x2, y2, &vx2, &vy2, mousePos);
+        DirectSpheresBehindCursor(x3, y3, &vx3, &vy3, mousePos);
 
         checkSphereColide(x1, y1, R1, &vx1, &vy1, dt);
         checkSphereColide(x2, y2, R2, &vx2, &vy2, dt);
