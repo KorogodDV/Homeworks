@@ -2,73 +2,80 @@
 #include <iostream>
 #include "math.h"
 
-void drawSphere(float x, float y, int R, int N, int red, int green, int blue)
+struct Sphere
+{
+    float x;
+    float y;
+    int R;
+    float vx;
+    float vy;
+    int m;
+    int red;
+    int green;
+    int blue;
+};
+
+void drawSphere(Sphere sphere)
 {
     COLORREF color = txGetColor();
     COLORREF fillColor = txGetFillColor();
+    int N = 100;
     for (int i = 0; i < N; i++)
     {
-        txSetColor(RGB(red * i / N, green * i / N, blue * i / N));
-        txSetFillColor(RGB(red * i / N, green * i / N, blue * i / N));
-        txCircle(int(x + 0.5*(R - R * i / N)), int(y - 0.5*(R - R * i / N)), R - R * i / N);
+        txSetColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
+        txSetFillColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
+        txCircle(int(sphere.x + 0.5*(sphere.R - sphere.R * i / N)), int(sphere.y - 0.5*(sphere.R - sphere.R * i / N)), sphere.R - sphere.R * i / N);
     }
     txSetColor(color);
     txSetFillColor(fillColor);
 }
 
-void speedBoostForCatchingSpheres(float* v)
+void speedBoostForCatchingSpheres(Sphere* sphere)
 {
-    *v += 0,005;
+    sphere->vx += 0,005;
 }
 
-void moveSphere(float* x, float* y, float vx, float vy, float dt)
+void moveSphere(Sphere* sphere, float dt)
 {
-    *x += vx * dt;
-    *y += vy * dt;
+    sphere->x += sphere->vx * dt;
+    sphere->y += sphere->vy * dt;
 }
 
-void DirectSpheresBehindCursor(float x, float y, float* vx, float* vy, POINT p)
+void DirectSpheresBehindCursor(Sphere* sphere, POINT p)
 {
-    float v = sqrt(pow(*vx, 2) + pow(*vy, 2));
-    *vx = v * (p.x - x) / sqrt(pow(p.x - x, 2) + pow(p.y - y, 2));
-    *vy = v * (p.y - y) / sqrt(pow(p.x - x, 2) + pow(p.y - y, 2));
+    float v = sqrt(pow(sphere->vx, 2) + pow(sphere->vy, 2));
+    sphere->vx = v * (p.x - sphere->x) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
+    sphere->vy = v * (p.y - sphere->y) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
 }
 
-void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
+void checkSphereColide(Sphere* sphere, float dt)
 {
-    if (x + *vx * dt + R > 1280 || x + *vx * dt - R < 0)
+    if (sphere->x + sphere->vx * dt + sphere->R > 1280 || sphere->x + sphere->vx * dt - sphere->R < 0)
     {
-        *vx *= -1;
+        sphere->vx *= -1;
     }
-    if (y + *vy * dt + R > 720 || y + *vy * dt - R < 0)
+    if (sphere->y + sphere->vy * dt + sphere->R > 720 || sphere->y + sphere->vy * dt - sphere->R < 0)
     {
-        *vy *= -1;
-    }
-}
-
-
-bool checkCollisionTwoSpheres(float x1, float y1, int R1, float x2, float y2, int R2)
-{
-    if ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) > (R1 + R2) * (R1 + R2))
-    {
-        return false;
-    }
-    else
-    {
-        return true;
+        sphere->vy *= -1;
     }
 }
 
-void CollideSpheres(int m1, float* vx1, float* vy1, int m2, float* vx2, float* vy2)
+
+bool checkCollisionTwoSpheres(Sphere* sphere1, Sphere* sphere2)
 {
-    float vx10 = *vx1;
-    float vy10 = *vy1;
-    float vx20 = *vx2;
-    float vy20 = *vy2;
-    *vx1 = (2 * m2 * vx20 + (m1 - m2) * vx10) / (m1 + m2);
-    *vy1 = (2 * m2 * vy20 + (m1 - m2) * vy10) / (m1 + m2);
-    *vx2 = (2 * m1 * vx10 + (m2 - m1) * vx20) / (m1 + m2);
-    *vy2 = (2 * m1 * vy10 + (m2 - m1) * vy20) / (m1 + m2);
+    return pow(sphere1->x - sphere2->x, 2) + pow(sphere1->y - sphere2->y, 2) < pow(sphere1->R + sphere2->R, 2);
+}
+
+void CollideSpheres(Sphere* sphere1, Sphere* sphere2)
+{
+    float vx10 = sphere1->vx;
+    float vy10 = sphere1->vy;
+    float vx20 = sphere2->vx;
+    float vy20 = sphere2->vy;
+    sphere1->vx = (2 * sphere2->m * vx20 + (sphere1->m - sphere2->m) * vx10) / (sphere1->m + sphere2->m);
+    sphere1->vy = (2 * sphere2->m * vy20 + (sphere1->m - sphere2->m) * vy10) / (sphere1->m + sphere2->m);
+    sphere2->vx = (2 * sphere1->m * vx10 + (sphere2->m - sphere1->m) * vx20) / (sphere1->m + sphere2->m);
+    sphere2->vy = (2 * sphere1->m * vy10 + (sphere2->m - sphere1->m) * vy20) / (sphere1->m + sphere2->m);
 }
 
 int main()
@@ -83,35 +90,10 @@ int main()
     int N = 100;
     const float dt = 1.0;
 
-    float x1 = 640.0;
-    float y1 = 360.0;
-    int R1 = 65;
-    float vx1 = 10.0;
-    float vy1 = -5.0;
-    int m1 = 1;
-    int red1 = 255;
-    int green1 = 0;
-    int blue1 = 0;
-
-    float x2 = 100.0;
-    float y2 = 100.0;
-    int R2 = 65;
-    float vx2 = 2.0;
-    float vy2 = -2.0;
-    int m2 = 1;
-    int red2 = 0;
-    int green2 = 255;
-    int blue2 = 0;
-
-    float x3 = 100.0;
-    float y3 = 600.0;
-    int R3 = 65;
-    float vx3 = 2.0;
-    float vy3 = -2.0;
-    int m3 = 1;
-    int red3 = 0;
-    int green3 = 0;
-    int blue3 = 255;
+    Sphere sphere1 = {640.0, 360.0, 65, 10.0, -5.0, 1, 255, 0, 0};
+    Sphere sphere2 = {100.0, 100.0, 65, 2.0, -2.0, 1, 0, 255, 0};
+    Sphere sphere3 = {100.0, 600.0, 65, 2.0, -2.0, 1, 0, 0, 255};
+    std::cout << sphere1.x;
 
     POINT mousePos;
 
@@ -119,39 +101,39 @@ int main()
     {
         txBegin();
         txClear();
-        drawSphere(x1, y1, R1, N, red1, green1, blue1);
-        drawSphere(x2, y2, R2, N, red2, green2, blue2);
-        drawSphere(x3, y3, R3, N, red3, green3, blue3);
+        drawSphere(sphere1);
+        drawSphere(sphere2);
+        drawSphere(sphere3);
         txEnd();
 
         mousePos.x = txMouseX();
         mousePos.y = txMouseY();
-        speedBoostForCatchingSpheres(&vx2);
-        speedBoostForCatchingSpheres(&vx3);
+        speedBoostForCatchingSpheres(&sphere2);
+        speedBoostForCatchingSpheres(&sphere3);
 
-        DirectSpheresBehindCursor(x1, y1, &vx1, &vy1, mousePos);
-        DirectSpheresBehindCursor(x2, y2, &vx2, &vy2, mousePos);
-        DirectSpheresBehindCursor(x3, y3, &vx3, &vy3, mousePos);
+        DirectSpheresBehindCursor(&sphere1, mousePos);
+        DirectSpheresBehindCursor(&sphere2, mousePos);
+        DirectSpheresBehindCursor(&sphere3, mousePos);
 
-        checkSphereColide(x1, y1, R1, &vx1, &vy1, dt);
-        checkSphereColide(x2, y2, R2, &vx2, &vy2, dt);
-        checkSphereColide(x3, y3, R3, &vx3, &vy3, dt);
-        if (checkCollisionTwoSpheres(x1, y1, R1, x2, y2, R2))
+        checkSphereColide(&sphere1, dt);
+        checkSphereColide(&sphere2, dt);
+        checkSphereColide(&sphere3, dt);
+        if (checkCollisionTwoSpheres(&sphere1, &sphere2))
         {
             break;
         }
-        if (checkCollisionTwoSpheres(x1, y1, R1, x3, y3, R3))
+        if (checkCollisionTwoSpheres(&sphere1, &sphere3))
         {
             break;
         }
-        if (checkCollisionTwoSpheres(x3, y3, R3, x2, y2, R2))
+        if (checkCollisionTwoSpheres(&sphere2, &sphere3))
         {
-            CollideSpheres(m3, &vx3, &vy3, m2, &vx2, &vy2);
+            CollideSpheres(&sphere2, &sphere3);
         }
 
-        moveSphere(&x1, &y1, vx1, vy1, dt);
-        moveSphere(&x2, &y2, vx2, vy2, dt);
-        moveSphere(&x3, &y3, vx3, vy3, dt);
+        moveSphere(&sphere1, dt);
+        moveSphere(&sphere2, dt);
+        moveSphere(&sphere3, dt);
     }
     return 0;
 }
