@@ -30,8 +30,8 @@ void moveSphere(float* x, float* y, float vx, float vy, float dt)
 void DirectSpheresBehindCursor(float x, float y, float* vx, float* vy, POINT p)
 {
     float v = sqrt(pow(*vx, 2) + pow(*vy, 2));
-    *vx = v * (p.x - 128 - x) / sqrt(pow(p.x - 128 - x, 2) + pow(p.y - 85 - y, 2));
-    *vy = v * (p.y - 85 - y) / sqrt(pow(p.x - 128 - x, 2) + pow(p.y - 85 - y, 2));
+    *vx = v * (p.x - x) / sqrt(pow(p.x - x, 2) + pow(p.y - y, 2));
+    *vy = v * (p.y - y) / sqrt(pow(p.x - x, 2) + pow(p.y - y, 2));
 }
 
 void checkSphereColide(float x, float y, int R, float* vx, float* vy, float dt)
@@ -124,7 +124,8 @@ int main()
         drawSphere(x3, y3, R3, N, red3, green3, blue3);
         txEnd();
 
-        GetCursorPos(&mousePos);
+        mousePos.x = txMouseX();
+        mousePos.y = txMouseY();
         speedBoostForCatchingSpheres(&vx2);
         speedBoostForCatchingSpheres(&vx3);
 
