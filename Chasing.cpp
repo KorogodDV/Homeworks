@@ -1,6 +1,7 @@
-#include "TXLib.h"
 #include <iostream>
 #include "math.h"
+#include <SFML/Graphics.hpp>
+#include "TXLib.h"
 
 struct Sphere
 {
@@ -24,7 +25,7 @@ void drawSphere(Sphere sphere)
     {
         txSetColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
         txSetFillColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
-        txCircle(int(sphere.x + 0.5*(sphere.R - sphere.R * i / N)), int(sphere.y - 0.5*(sphere.R - sphere.R * i / N)), sphere.R - sphere.R * i / N);
+        txCircle(int(sphere.x + 0.5 * (sphere.R - sphere.R * i / N)), int(sphere.y - 0.5 * (sphere.R - sphere.R * i / N)), sphere.R - sphere.R * i / N);
     }
     txSetColor(color);
     txSetFillColor(fillColor);
@@ -32,7 +33,7 @@ void drawSphere(Sphere sphere)
 
 void speedBoostForCatchingSpheres(Sphere* sphere)
 {
-    sphere->vx += 0,005;
+    sphere->vx += 0, 005;
 }
 
 void moveSphere(Sphere* sphere, float dt)
@@ -90,10 +91,9 @@ int main()
     int N = 100;
     const float dt = 1.0;
 
-    Sphere sphere1 = {640.0, 360.0, 65, 10.0, -5.0, 1, 255, 0, 0};
-    Sphere sphere2 = {100.0, 100.0, 65, 2.0, -2.0, 1, 0, 255, 0};
-    Sphere sphere3 = {100.0, 600.0, 65, 2.0, -2.0, 1, 0, 0, 255};
-    std::cout << sphere1.x;
+    Sphere sphere1 = { 640.0, 360.0, 65, 10.0, -5.0, 1, 255, 0, 0 };
+    Sphere sphere2 = { 100.0, 100.0, 65, 2.0, -2.0, 1, 0, 255, 0 };
+    Sphere sphere3 = { 100.0, 600.0, 65, 2.0, -2.0, 1, 0, 0, 255 };
 
     POINT mousePos;
 
@@ -106,8 +106,7 @@ int main()
         drawSphere(sphere3);
         txEnd();
 
-        mousePos.x = txMouseX();
-        mousePos.y = txMouseY();
+        mousePos = txMousePos();
         speedBoostForCatchingSpheres(&sphere2);
         speedBoostForCatchingSpheres(&sphere3);
 
