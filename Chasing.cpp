@@ -1,7 +1,7 @@
 #include <iostream>
 #include "math.h"
 #include <SFML/Graphics.hpp>
-#include "TXLib.h"
+#include "windows.h"
 
 struct Sphere
 {
@@ -16,19 +16,16 @@ struct Sphere
     int blue;
 };
 
-void drawSphere(Sphere sphere)
+void drawSphere(Sphere sphere, sf::RenderWindow* window)
 {
-    COLORREF color = txGetColor();
-    COLORREF fillColor = txGetFillColor();
     int N = 100;
     for (int i = 0; i < N; i++)
     {
-        txSetColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
-        txSetFillColor(RGB(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
-        txCircle(int(sphere.x + 0.5 * (sphere.R - sphere.R * i / N)), int(sphere.y - 0.5 * (sphere.R - sphere.R * i / N)), sphere.R - sphere.R * i / N);
+        sf::CircleShape circle(sphere.R - sphere.R * i / N);
+        circle.setPosition(sphere.x + 0.5 * (sphere.R + sphere.R * i / N), sphere.y - 0.5 * (sphere.R - sphere.R * i / N));
+        circle.setFillColor(sf::Color(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
+        (*window).draw(circle);
     }
-    txSetColor(color);
-    txSetFillColor(fillColor);
 }
 
 void speedBoostForCatchingSpheres(Sphere* sphere)
@@ -45,17 +42,17 @@ void moveSphere(Sphere* sphere, float dt)
 void DirectSpheresBehindCursor(Sphere* sphere, POINT p)
 {
     float v = sqrt(pow(sphere->vx, 2) + pow(sphere->vy, 2));
-    sphere->vx = v * (p.x - sphere->x) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
-    sphere->vy = v * (p.y - sphere->y) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
+    sphere->vx = v * (p.x - sphere->x - sphere->R) / sqrt(pow(p.x - sphere->x - sphere->R, 2) + pow(p.y - sphere->y - sphere->R, 2));
+    sphere->vy = v * (p.y - sphere->y - sphere->R) / sqrt(pow(p.x - sphere->x - sphere->R, 2) + pow(p.y - sphere->y - sphere->R, 2));
 }
 
 void checkSphereColide(Sphere* sphere, float dt)
 {
-    if (sphere->x + sphere->vx * dt + sphere->R > 1280 || sphere->x + sphere->vx * dt - sphere->R < 0)
+    if (sphere->x + sphere->vx * dt + 2 * sphere->R > 1280 || sphere->x + sphere->vx * dt < 0)
     {
         sphere->vx *= -1;
     }
-    if (sphere->y + sphere->vy * dt + sphere->R > 720 || sphere->y + sphere->vy * dt - sphere->R < 0)
+    if (sphere->y + sphere->vy * dt + 2 * sphere->R > 720 || sphere->y + sphere->vy * dt < 0)
     {
         sphere->vy *= -1;
     }
@@ -81,32 +78,46 @@ void CollideSpheres(Sphere* sphere1, Sphere* sphere2)
 
 int main()
 {
-    txCreateWindow(1280, 720);
-    txSetFillColor(TX_BLACK);
+    sf::RenderWindow window(sf::VideoMode(1280, 720), "Chasing");
+    //txSetFillColor(TX_BLACK);
 
-    std::cout << "Вы будете играть красным шариком и ваша цель не дать двум шарикам вас догнать.";
+    //std::cout << "Вы будете играть красным шариком и ваша цель не дать двум шарикам вас догнать.";
 
     Sleep(3000);
 
     int N = 100;
     const float dt = 1.0;
 
-    Sphere sphere1 = { 640.0, 360.0, 65, 10.0, -5.0, 1, 255, 0, 0 };
-    Sphere sphere2 = { 100.0, 100.0, 65, 2.0, -2.0, 1, 0, 255, 0 };
-    Sphere sphere3 = { 100.0, 600.0, 65, 2.0, -2.0, 1, 0, 0, 255 };
+    Sphere sphere1 = {640.0, 360.0, 65, 10.0, -5.0, 1, 255, 0, 0};
+    Sphere sphere2 = {100.0, 100.0, 65, 2.0, -2.0, 1, 0, 255, 0};
+    Sphere sphere3 = {100.0, 500.0, 65, 2.0, -2.0, 1, 0, 0, 255};
 
     POINT mousePos;
 
-    while (true)
+    while (window.isOpen())
     {
-        txBegin();
-        txClear();
-        drawSphere(sphere1);
-        drawSphere(sphere2);
-        drawSphere(sphere3);
-        txEnd();
+        sf::Event event;
+        window.clear();
+        drawSphere(sphere1, &window);
+        drawSphere(sphere2, &window);
+        drawSphere(sphere3, &window);
+        window.display();
+        while (window.pollEvent(event))
+        {
+            if ((event.type == sf::Event::Closed) || ((event.type == sf::Event::KeyPressed) & (event.key.code == sf::Keyboard::Escape)))
+            {
+                window.close();
+            }
+            else if (event.type == sf::Event::MouseMoved)
+            {
+                mousePos.x = event.mouseMove.x;
+                mousePos.y = event.mouseMove.y;
+                std::cout << mousePos.x << " " << mousePos.y << " ";
+                std::cout << sphere1.x << " " << sphere1.y << " ";
+                break;
+            }
+        }
 
-        mousePos = txMousePos();
         speedBoostForCatchingSpheres(&sphere2);
         speedBoostForCatchingSpheres(&sphere3);
 
