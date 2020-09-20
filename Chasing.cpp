@@ -79,9 +79,6 @@ void CollideSpheres(Sphere* sphere1, Sphere* sphere2)
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(1280, 720), "Chasing");
-    //txSetFillColor(TX_BLACK);
-
-    //std::cout << "Вы будете играть красным шариком и ваша цель не дать двум шарикам вас догнать.";
 
     Sleep(3000);
 
@@ -112,8 +109,6 @@ int main()
             {
                 mousePos.x = event.mouseMove.x;
                 mousePos.y = event.mouseMove.y;
-                std::cout << mousePos.x << " " << mousePos.y << " ";
-                std::cout << sphere1.x << " " << sphere1.y << " ";
                 break;
             }
         }
