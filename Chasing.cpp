@@ -22,7 +22,7 @@ void drawSphere(Sphere sphere, sf::RenderWindow* window)
     for (int i = 0; i < N; i++)
     {
         sf::CircleShape circle(sphere.R - sphere.R * i / N);
-        circle.setPosition(sphere.x + 0.5 * (sphere.R + sphere.R * i / N), sphere.y - 0.5 * (sphere.R - sphere.R * i / N));
+        circle.setPosition(sphere.x - sphere.R + 1.4 * sphere.R * i / N, sphere.y - sphere.R + 0.6 * sphere.R * i / N);
         circle.setFillColor(sf::Color(sphere.red * i / N, sphere.green * i / N, sphere.blue * i / N));
         (*window).draw(circle);
     }
@@ -42,8 +42,8 @@ void moveSphere(Sphere* sphere, float dt)
 void DirectSpheresBehindCursor(Sphere* sphere, POINT p)
 {
     float v = sqrt(pow(sphere->vx, 2) + pow(sphere->vy, 2));
-    sphere->vx = v * (p.x - sphere->x - sphere->R) / sqrt(pow(p.x - sphere->x - sphere->R, 2) + pow(p.y - sphere->y - sphere->R, 2));
-    sphere->vy = v * (p.y - sphere->y - sphere->R) / sqrt(pow(p.x - sphere->x - sphere->R, 2) + pow(p.y - sphere->y - sphere->R, 2));
+    sphere->vx = v * (p.x - sphere->x) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
+    sphere->vy = v * (p.y - sphere->y) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
 }
 
 void checkSphereColide(Sphere* sphere, float dt)
@@ -101,18 +101,17 @@ int main()
         window.display();
         while (window.pollEvent(event))
         {
-            if ((event.type == sf::Event::Closed) || ((event.type == sf::Event::KeyPressed) & (event.key.code == sf::Keyboard::Escape)))
+            if ((event.type == sf::Event::Closed) || (event.key.code == sf::Keyboard::Escape))
             {
                 window.close();
+                break;
             }
-            else if (event.type == sf::Event::MouseMoved)
+            if (event.type == sf::Event::MouseMoved)
             {
                 mousePos.x = event.mouseMove.x;
                 mousePos.y = event.mouseMove.y;
-                break;
             }
         }
-
         speedBoostForCatchingSpheres(&sphere2);
         speedBoostForCatchingSpheres(&sphere3);
 
