@@ -39,7 +39,7 @@ void moveSphere(Sphere* sphere, float dt)
     sphere->y += sphere->vy * dt;
 }
 
-void DirectSpheresBehindCursor(Sphere* sphere, POINT p)
+void directSpheresBehindCursor(Sphere* sphere, POINT p)
 {
     float v = sqrt(pow(sphere->vx, 2) + pow(sphere->vy, 2));
     sphere->vx = v * (p.x - sphere->x) / sqrt(pow(p.x - sphere->x, 2) + pow(p.y - sphere->y, 2));
@@ -64,7 +64,7 @@ bool checkCollisionTwoSpheres(Sphere* sphere1, Sphere* sphere2)
     return pow(sphere1->x - sphere2->x, 2) + pow(sphere1->y - sphere2->y, 2) < pow(sphere1->R + sphere2->R, 2);
 }
 
-void CollideSpheres(Sphere* sphere1, Sphere* sphere2)
+void collideSpheres(Sphere* sphere1, Sphere* sphere2)
 {
     float vx10 = sphere1->vx;
     float vy10 = sphere1->vy;
@@ -115,9 +115,9 @@ int main()
         speedBoostForCatchingSpheres(&sphere2);
         speedBoostForCatchingSpheres(&sphere3);
 
-        DirectSpheresBehindCursor(&sphere1, mousePos);
-        DirectSpheresBehindCursor(&sphere2, mousePos);
-        DirectSpheresBehindCursor(&sphere3, mousePos);
+        directSpheresBehindCursor(&sphere1, mousePos);
+        directSpheresBehindCursor(&sphere2, mousePos);
+        directSpheresBehindCursor(&sphere3, mousePos);
 
         checkSphereColide(&sphere1, dt);
         checkSphereColide(&sphere2, dt);
@@ -132,7 +132,7 @@ int main()
         }
         if (checkCollisionTwoSpheres(&sphere2, &sphere3))
         {
-            CollideSpheres(&sphere2, &sphere3);
+            collideSpheres(&sphere2, &sphere3);
         }
 
         moveSphere(&sphere1, dt);
