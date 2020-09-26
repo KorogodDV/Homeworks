@@ -1,5 +1,6 @@
 #include "math.h"
 #include <SFML/Graphics.hpp>
+#include "windows.h"
 
 const float DT = 1.0;
 const float speedboost = 0.001;
@@ -23,21 +24,21 @@ struct Sphere
     int blue;
 };
 
-void drawSphere(sf::RenderWindow* window, Sphere sphere, int lighting_detailing = 10)
+void drawSphere(sf::RenderWindow* window, Sphere sphere, int lighting_detailing = 100)
 {
     sf::CircleShape circle(sphere.R);
     for (int i = 0; i < lighting_detailing; i++)
     {
         circle.setRadius(sphere.R - sphere.R * i / lighting_detailing);
         circle.setPosition(sphere.pos.x - sphere.R + 1.4 * sphere.R * i / lighting_detailing, sphere.pos.y - sphere.R + 0.6 * sphere.R * i / lighting_detailing);
-        circle.setFillColor(sf::Color(0.875 * sphere.red * i / lighting_detailing + 0.125 * sphere.red, 0.875 * sphere.green * i / lighting_detailing + 0.125 * sphere.green, 0.875 * sphere.blue * i / lighting_detailing + 0.125 * sphere.blue));
+        circle.setFillColor(sf::Color(sphere.red * i / lighting_detailing, sphere.green * i / lighting_detailing, sphere.blue * i / lighting_detailing));
         (*window).draw(circle);
     }
 }
 
 void speedBoostForCatchingSpheres(Sphere* sphere)
 {
-    sphere->speed.x += speedboost * sphere->speed.x / abs(sphere->speed.x);
+    sphere->speed.x += speedboost;
 }
 
 void moveSphere(Sphere* sphere, float DT)
@@ -46,28 +47,22 @@ void moveSphere(Sphere* sphere, float DT)
     sphere->pos.y += sphere->speed.y * DT;
 }
 
-
-void checkSphereColideWithWalls(Sphere* sphere)
+void directSpheresBehindCursor(Sphere* sphere, POINT p)
 {
-    if (sphere->pos.x + sphere->speed.x * DT + sphere->R > window_length)
+    float v = sqrt(pow(sphere->speed.x, 2) + pow(sphere->speed.y, 2));
+    sphere->speed.x = v * (p.x - sphere->pos.x) / sqrt(pow(p.x - sphere->pos.x, 2) + pow(p.y - sphere->pos.y, 2));
+    sphere->speed.y = v * (p.y - sphere->pos.y) / sqrt(pow(p.x - sphere->pos.x, 2) + pow(p.y - sphere->pos.y, 2));
+}
+
+void checkSphereColideWithWalls(Sphere* sphere, float DT)
+{
+    if (sphere->pos.x + sphere->speed.x * DT + sphere->R > window_length || sphere->pos.x + sphere->speed.x * DT - sphere->R < 0)
     {
         sphere->speed.x *= -1;
-        sphere->pos.x = 2 * window_length - sphere->pos.x - 2 * sphere->R;
     }
-    if (sphere->pos.x + sphere->speed.x * DT - sphere->R < 0)
-    {
-        sphere->speed.x *= -1;
-        sphere->pos.x = -sphere->pos.x + 2 * sphere->R;
-    }
-    if (sphere->pos.y + sphere->speed.y * DT + sphere->R > window_width)
+    if (sphere->pos.y + sphere->speed.y * DT + sphere->R > window_width || sphere->pos.y + sphere->speed.y * DT - sphere->R < 0)
     {
         sphere->speed.y *= -1;
-        sphere->pos.y = 2 * window_width - sphere->pos.y - 2 * sphere->R;
-    }
-    if (sphere->pos.y + sphere->speed.y * DT - sphere->R < 0)
-    {
-        sphere->speed.y *= -1;
-        sphere->pos.y = -sphere->pos.y + 2 * sphere->R;
     }
 }
 
@@ -94,21 +89,19 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode(window_length, window_width), "Chasing");
 
-    int N = 100;
-    Sphere particles[100];
-    for (int i = 0; i < 100; i++)
-    {
-        particles[i] = { float(50 * i % (window_length - 100) + 50), float(100 * (50 * i - 50 * i % (window_length - 100)) / (window_length - 100)), 12, float(0.3 * i), float(-0.1 * i), 1, 10 * i % 255, 15 * i % 255, 5 * i % 255 };
-    }
+    Sphere sphere1 = { 640.0, 360.0, 65, 3.0, -1.0, 1, 255, 0, 0 };
+    Sphere sphere2 = { 100.0, 100.0, 65, 1.0, -0.4, 2, 0, 255, 0 };
+    Sphere sphere3 = { 100.0, 500.0, 65, 1.4, -0.4, 5, 0, 0, 255 };
+
+    POINT mousePos = { 640.0, 360.0 };
 
     while (window.isOpen())
     {
         sf::Event event;
         window.clear();
-        for (int i = 0; i < 100; i++)
-        {
-            drawSphere(&window, particles[i]);
-        }
+        drawSphere(&window, sphere1);
+        drawSphere(&window, sphere2);
+        drawSphere(&window, sphere3);
         window.display();
 
         while (window.pollEvent(event))
@@ -118,28 +111,42 @@ int main()
                 window.close();
                 break;
             }
-        }
-
-        for (int i = 0; i < 100; i++)
-        {
-            checkSphereColideWithWalls(&particles[i]);
-        }
-
-        for (int i = 0; i < 100; i++)
-        {
-            for (int k = i; k < 100; k++)
+            if (event.type == sf::Event::MouseMoved)
             {
-                if (checkCollisionTwoSpheres(&particles[i], &particles[k]))
-                {
-                    collideSpheres(&particles[i], &particles[k]);
-                }
+                mousePos.x = event.mouseMove.x;
+                mousePos.y = event.mouseMove.y;
             }
         }
 
-        for (int i = 0; i < 100; i++)
+        speedBoostForCatchingSpheres(&sphere2);
+        speedBoostForCatchingSpheres(&sphere3);
+
+        directSpheresBehindCursor(&sphere1, mousePos);
+        directSpheresBehindCursor(&sphere2, mousePos);
+        directSpheresBehindCursor(&sphere3, mousePos);
+
+        checkSphereColideWithWalls(&sphere1, DT);
+        checkSphereColideWithWalls(&sphere2, DT);
+        checkSphereColideWithWalls(&sphere3, DT);
+
+        if (checkCollisionTwoSpheres(&sphere1, &sphere2))
         {
-            moveSphere(&particles[i], DT);
+            break;
         }
+
+        if (checkCollisionTwoSpheres(&sphere1, &sphere3))
+        {
+            break;
+        }
+
+        if (checkCollisionTwoSpheres(&sphere2, &sphere3))
+        {
+            collideSpheres(&sphere2, &sphere3);
+        }
+
+        moveSphere(&sphere1, DT);
+        moveSphere(&sphere2, DT);
+        moveSphere(&sphere3, DT);
     }
     return 0;
 }
