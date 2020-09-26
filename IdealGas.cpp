@@ -114,7 +114,7 @@ int main()
         {
             if ((event.type == sf::Event::Closed) || (event.key.code == sf::Keyboard::Escape))
             {
-                window.close();
+                window.close();s
                 break;
             }
         }
