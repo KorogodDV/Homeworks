@@ -94,6 +94,7 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode(window_length, window_width), "Chasing");
 
+    int N = 100;
     Sphere particles[100];
     for (int i = 0; i < 100; i++)
     {
@@ -114,7 +115,7 @@ int main()
         {
             if ((event.type == sf::Event::Closed) || (event.key.code == sf::Keyboard::Escape))
             {
-                window.close();s
+                window.close();
                 break;
             }
         }
